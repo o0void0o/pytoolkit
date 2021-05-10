@@ -13,9 +13,36 @@
 
 import datetime
 import os.path
+from configparser import ConfigParser
 
-DB = "notes.adoc"
+configFile='pynote_config.ini'
 
+def loadConfig(configFile):
+    config = ConfigParser()
+    config.read(configFile)
+    if config.has_section('main'):
+        return config
+    else:
+        config.add_section('main')
+        with open(configFile, 'w') as f:
+            config.write(f)
+
+
+
+def getNotesDB(config):
+    if config.has_option('main','noteDB'):
+        return config.get('main','noteDB')
+    else:
+        db=input("waar save ons?")
+        config.set('main','noteDB',db+'/pynotes.adoc')
+        with open(configFile, 'w') as f:
+            config.write(f)
+
+        return config.get('main','noteDB')
+
+
+config= loadConfig(configFile)
+DB=getNotesDB(config)
 if not os.path.isfile(DB):
     with open(DB, 'w'): pass
 
