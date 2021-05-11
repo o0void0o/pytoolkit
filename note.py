@@ -15,36 +15,43 @@ import datetime
 import os.path
 from configparser import ConfigParser
 
-configFile='pynote_config.ini'
+# very simple note dumping script. The latest note goes to the top. The addded note is prepended
+# with the current date.
 
+# constants
+configFile = 'pynote_config.ini'
+version = '1'
+dbFileName = '/pynotes.adoc'
+
+# functions
+def saveConfig(config):
+     with open(configFile, 'w') as f:
+            config.write(f)
+
+def createCleanConfig(config):
+    config.add_section('main')
+    config.set('main','version',version)
+    saveConfig(config)
+       
 def loadConfig(configFile):
     config = ConfigParser()
     config.read(configFile)
-    if config.has_section('main'):
-        return config
-    else:
-        config.add_section('main')
-        with open(configFile, 'w') as f:
-            config.write(f)
-
-
+    if not config.has_section('main'):
+        createCleanConfig(config)
+    return config       
 
 def getNotesDB(config):
-    if config.has_option('main','noteDB'):
-        return config.get('main','noteDB')
-    else:
-        db=input("waar save ons?")
-        config.set('main','noteDB',db+'/pynotes.adoc')
-        with open(configFile, 'w') as f:
-            config.write(f)
-
-        return config.get('main','noteDB')
-
-
-config= loadConfig(configFile)
-DB=getNotesDB(config)
-if not os.path.isfile(DB):
-    with open(DB, 'w'): pass
+    if not config.has_option('main','note_db_path'):
+        savePath=input("Please enter path to save notes in: ")
+        config.set('main','note_db_path',savePath + dbFileName)
+        saveConfig(config)
+    
+    note_db = config.get('main','note_db_path')
+    # creates a note database if it doesn't all ready exists.
+    if not os.path.isfile(note_db):
+        with open(note_db, 'w'): pass
+    
+    return note_db
 
 def line_prepender(filename, line):
     with open(filename, 'r+') as f:
@@ -52,9 +59,9 @@ def line_prepender(filename, line):
         f.seek(0, 0)
         f.write(line.rstrip('\r\n') + '\n' + content)
 
+# script starts here
+config = loadConfig(configFile)
+note_db = getNotesDB(config)
 date = str(datetime.datetime.now())
 line = date+ " " + input("Type the note: ")
-line_prepender(DB, line)
-
-# very simple note dumping scrippy. The latest goes to the top. The addded note is prepended
-# with the date. The notes live in the DB consants file.
+line_prepender(note_db, line)
