@@ -14,42 +14,31 @@
 import datetime
 import os.path
 from configparser import ConfigParser
+import argparse
+import os
+import sys
 
 # very simple note dumping script. The latest note goes to the top. The addded note is prepended
 # with the current date.
 
 # constants
-configFile = 'pynote_config.ini'
+configFileName = 'pynote_config.ini'
 version = '1'
 dbFileName = '/pynotes.adoc'
 
-
-import argparse
-
-import os
-import sys
-
-# Create the parser
-my_parser = argparse.ArgumentParser(description='Adds a one line note to a flat text data base.')
-
-# Add the arguments
-my_parser.add_argument('-n','--note',
-                       action='store',
-                       help='saves the provided note')
-my_parser.add_argument('-l',
-                       action='store_true',
-                       help='displays the flat text data base location and exit')
-
-# Execute the parse_args() method
-args = my_parser.parse_args()
-
-note_to_save = args.note
-list_db_location = args.l
-
+def createArgParser():
+    arg_parser = argparse.ArgumentParser(description='Adds a one line note to a flat text data base.')
+    arg_parser.add_argument('-n','--note',
+                        action='store',
+                        help='saves the provided note')
+    arg_parser.add_argument('-l',
+                        action='store_true',
+                        help='displays the flat text data base location and exit')
+    return arg_parser.parse_args()
 
 # functions
 def saveConfig(config):
-     with open(configFile, 'w') as f:
+     with open(configFileName, 'w') as f:
             config.write(f)
 
 def createCleanConfig(config):
@@ -57,9 +46,9 @@ def createCleanConfig(config):
     config.set('main','version',version)
     saveConfig(config)
        
-def loadConfig(configFile):
+def loadConfig():
     config = ConfigParser()
-    config.read(configFile)
+    config.read(configFileName)
     if not config.has_section('main'):
         createCleanConfig(config)
     return config       
@@ -71,7 +60,7 @@ def getNotesDB(config):
         saveConfig(config)
     
     note_db = config.get('main','note_db_path')
-    # creates a note database if it doesn't all ready exists.
+    # creates a note database if it doesn't allready exists.
     if not os.path.isfile(note_db):
         with open(note_db, 'w'): pass
     
@@ -84,15 +73,16 @@ def line_prepender(filename, line):
         f.write(line.rstrip('\r\n') + '\n' + content)
 
 # script starts here
-config = loadConfig(configFile)
+args = createArgParser()
+config = loadConfig()
 note_db = getNotesDB(config)
-date = str(datetime.datetime.now())
 
-if list_db_location:
+if args.l:
     print("Database location: " + note_db)
     exit()
-if note_to_save:
-    line = date+ " " + note_to_save
+date = str(datetime.datetime.now())
+if args.note:
+    line = date+ " " + args.note
 else:
     line = date+ " " + input("Type the note: ")
 line_prepender(note_db, line)
