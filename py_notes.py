@@ -23,6 +23,30 @@ configFile = 'pynote_config.ini'
 version = '1'
 dbFileName = '/pynotes.adoc'
 
+
+import argparse
+
+import os
+import sys
+
+# Create the parser
+my_parser = argparse.ArgumentParser(description='Adds a one line note to a flat text data base.')
+
+# Add the arguments
+my_parser.add_argument('-n','--note',
+                       action='store',
+                       help='saves the provided note')
+my_parser.add_argument('-l',
+                       action='store_true',
+                       help='displays the flat text data base location and exit')
+
+# Execute the parse_args() method
+args = my_parser.parse_args()
+
+note_to_save = args.note
+list_db_location = args.l
+
+
 # functions
 def saveConfig(config):
      with open(configFile, 'w') as f:
@@ -63,5 +87,12 @@ def line_prepender(filename, line):
 config = loadConfig(configFile)
 note_db = getNotesDB(config)
 date = str(datetime.datetime.now())
-line = date+ " " + input("Type the note: ")
+
+if list_db_location:
+    print("Database location: " + note_db)
+    exit()
+if note_to_save:
+    line = date+ " " + note_to_save
+else:
+    line = date+ " " + input("Type the note: ")
 line_prepender(note_db, line)
