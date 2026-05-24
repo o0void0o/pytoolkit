@@ -1,0 +1,4 @@
+# All pure-Python — works on Termux / Android without compilers.
+flask>=3.0,<4.0
+waitress>=3.0,<4.0
+colorama>=0.4.6; platform_system == "Windows"
